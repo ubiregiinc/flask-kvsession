@@ -12,8 +12,7 @@ setup(
     description='Transparent server-side session support for flask',
     packages=['flaskext'],
     install_requires=[
-        'Flask>=0.8', 'simplekv>=0.9.2', 'werkzeug', 'itsdangerous>=0.20',
-        'six',
+        'Flask>=0.8', 'simplekv', 'werkzeug', 'itsdangerous',
     ],
     classifiers=[
         'Programming Language :: Python :: 2',
