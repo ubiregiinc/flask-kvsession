@@ -5,8 +5,8 @@ from setuptools import setup
 
 setup(
     name='Flask-KVSession-For-Me',
-    version='0.6.3.dev2',
-    url='https://github.com/kojakatsuma/flask-kvsession',
+    version='1.0.0.dev0',
+    url='https://github.com/ubiregiinc/flask-kvsession',
     license='MIT',
     author='Marc Brinkmann',
     description='Transparent server-side session support for flask',

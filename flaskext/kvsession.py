@@ -128,6 +128,13 @@ class KVSessionInterface(SessionInterface):
                     # we will find out here
                     sid_s = Signer(app.secret_key).unsign(session_cookie)
 
+                    # Flask 2.2.x requires itsdangerous >= 2.0. With itsdangerous >= 2.0, `Signer.unsign`
+                    # returns a bytes value instead of a string one like with older versions. Therefore,
+                    # we now need to convert the return value to a string.
+                    # https://github.com/pallets/flask/blob/2.2.x/setup.py#L9
+                    if type(sid_s) == bytes:
+                        sid_s = sid_s.decode("utf-8")
+
                     ## Kenji
                     # retrieve from store
                     s = KVSession(self.serialization_method.loads(
