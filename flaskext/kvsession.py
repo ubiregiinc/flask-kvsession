@@ -180,6 +180,14 @@ class KVSessionInterface(SessionInterface):
             # save sid_s in session cookie
             cookie_data = Signer(app.secret_key).sign(session.sid_s)
 
+            # Flask 2.3.2 requires Werkzeug >= 2.3.3. There was no problem with Werkzeug 2.3.7 and its earlier versions.
+            # But when Werkzeug 3.0.0 is released, it is automatically installed along with FLask 2.3.2 which makes
+            # `Signer.sign` return a bytes value instead of a string one like with older versions. Therefore, we now
+            # need to convert the return value to a string.
+            # https://flask.palletsprojects.com/en/2.3.x/changes/#version-2-3-2
+            if type(cookie_data) == bytes:
+                cookie_data = cookie_data.decode("utf-8")
+
             response.set_cookie(key=app.config['SESSION_COOKIE_NAME'],
                                 value=cookie_data,
                                 expires=self.get_expiration_time(app, session),
