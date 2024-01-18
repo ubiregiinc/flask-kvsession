@@ -11,6 +11,8 @@
 ## Kenji Memo: Based on kvsession v.0.4
 
 import calendar
+import sys
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -117,6 +119,21 @@ class KVSession(CallbackDict, SessionMixin):
 class KVSessionInterface(SessionInterface):
     serialization_method = pickle
 
+    @classmethod
+    def pickle_loads(cls, data):
+        if sys.version_info[0] == 3:
+            if type(data) == str:
+                data = data.encode()
+            content = cls.serialization_method.loads(data, encoding="latin1")
+        else:
+            content = cls.serialization_method.loads(data)
+        return content
+
+    @classmethod
+    def pickle_dumps(cls, data):
+        content = cls.serialization_method.dumps(data, protocol=2)
+        return content
+
     def open_session(self, app, request):
         key = app.secret_key
 
@@ -137,9 +154,14 @@ class KVSessionInterface(SessionInterface):
 
                     ## Kenji
                     # retrieve from store
-                    s = KVSession(self.serialization_method.loads(
-                        current_app.kvsession_store.get(sid_s))
-                    )
+                    try:
+                        s = KVSession(self.__class__.pickle_loads(current_app.kvsession_store.get(sid_s)))
+                    except:
+                        # If there is any error with the unpickling process, delete the session associated
+                        # with the cookie and create a new one
+                        current_app.kvsession_store.delete(sid_s)
+                        s = KVSession()
+                        s.new = True
 
                     if s.has_expired(app.config['PERMANENT_SESSION_LIFETIME']):
                         raise KeyError
@@ -173,8 +195,7 @@ class KVSessionInterface(SessionInterface):
                     )
                 ).serialize()
 
-            current_app.kvsession_store.put(session.sid_s,
-                           self.serialization_method.dumps(dict(session)))
+            current_app.kvsession_store.put(session.sid_s, self.__class__.pickle_dumps(dict(session)))
             session.new = False
 
             # save sid_s in session cookie
